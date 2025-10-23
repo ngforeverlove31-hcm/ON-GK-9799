@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiz 51 câu - Ôn tập KTGK1</title>
+<style>
+  body {font-family: Arial, sans-serif; background:#fff; color:#000; padding:20px;}
+  h1,h2{margin:8px 0}
+  .names {column-count:2; column-gap:40px; max-width:1000px;}
+  .names a {display:block; padding:6px 4px; text-decoration:none; color:#000;}
+  .names a:hover {background:#f0f0f0;}
+  #quizArea{margin-top:20px;}
+  .question {border-bottom:1px solid #ddd; padding:12px 0;}
+  .choices label{display:block; padding:6px; cursor:pointer;}
+  .feedback {margin-top:8px; font-weight:600;}
+  .correct {font-weight:700;}
+  .disabled {opacity:0.7;}
+  button {padding:8px 12px; margin:8px 0;}
+  .small {font-size:0.9em; color:#444}
+  .hidden {display:none}
+</style>
+</head>
+<body>
+<h1>Quiz ôn tập — 51 câu</h1>
+<p class="small">Nhấn vào tên học sinh để mở quiz (cùng một bộ 51 câu). Đuôi link sẽ thể hiện tên học sinh. Sau khi HS chọn đáp án, sẽ hiển thị ngay đúng/sai và đáp án đúng được in đậm.</p>
+
+<div id="nameList" class="names">
+</div>
+
+<hr>
+
+<div id="quizArea" class="hidden">
+  <h2 id="studentTitle"></h2>
+  <div id="questionsContainer"></div>
+  <button id="showScoreBtn">Hiển thị điểm</button>
+  <div id="scoreArea" class="hidden"></div>
+  <p class="small">White & Black theme (nền trắng, chữ đen).</p>
+  <p><a id="backToList" href="#" onclick="backToList();return false;">← Quay lại danh sách học sinh</a></p>
+</div>
+
+<script>
+// Student names from your lists with class added
+const students = [
+"Lê Thái An - 9/9","Đào Vũ Hồng Anh - 9/9","Hoàng Nam Anh - 9/9","Nguyễn Hoàng Việt Anh - 9/9","Nguyễn Hoàng Bách - 9/9","Đoàn Quốc Bảo - 9/9","Văn Tiến Bảo - 9/9","Ngô Linh Chi - 9/9","Nguyễn Ngọc Quỳnh Chi - 9/9","Từ Lê Minh Cương - 9/9","Châu Ngọc Diệp - 9/9","Nguyễn Tăng Khánh Đan - 9/9","Không Nhật Đoàn - 9/9","Nguyễn Tôn Hương Giang - 9/9","Vũ Duy Hải - 9/9","Trần Lưu Thanh Hằng - 9/9","Nguyễn Ngọc Bảo Hân - 9/9","Đặng Trung Hiếu - 9/9","Hoàng Trung Hiếu - 9/9","Nguyễn Hoài Huy - 9/9","Bùi Duy Bảo Khang - 9/9","Trịnh Quốc Khang - 9/9","Lê Hoàng Huy Khánh - 9/9","Lê Hoàng Anh Khoa - 9/9","Lê Minh Khôi - 9/9","Thẩm Trần Kiên - 9/9","Nguyễn Thanh Lễ - 9/9","Võ Thị Phương Linh - 9/9","Nguyễn Hữu Lộc - 9/9","Đinh Ngọc Xuân Mai - 9/9","Vũ Nguyễn Hoàng Minh - 9/9","Trần Thị Kim Ngân - 9/9","Lê Nguyễn Bảo Ngọc - 9/9","Nguyễn Thương Hải Nguyên - 9/9","Nguyễn Đàm Phương Nhi - 9/9","Vũ Yến Nhi - 9/9","Lê Ngọc Vân Nhung - 9/9","Vũ Nhật Phong - 9/9","Phạm Gia Phú - 9/9","Nguyễn Ngọc Thiên Phương - 9/9","Trần Ngọc Thành - 9/9","Nguyễn Tri Thiên - 9/9","Phạm Minh Thư - 9/9","Nguyễn Hoàng Minh Thy - 9/9","Phạm Nguyễn Bảo Thy - 9/9","Phạm Duy Tiền - 9/9","Nghiêm Đức Toàn - 9/9","Phạm Huyền Trang - 9/9","Nguyễn Trương Khánh Trí - 9/9","Nguyễn Ngọc Phương Uyên - 9/9","Thiều Thúy Vy - 9/9","Vũ Lê Vy - 9/9",
+"Nguyễn Tâm An - 9/7","Nguyễn Thị Phương Anh - 9/7","Nguyễn Đức Ân - 9/7","Bùi Gia Bảo - 9/7","Hồ Gia Bảo - 9/7","Nguyễn Quốc Bảo - 9/7","Nguyễn Lê Thành Danh - 9/7","Phạm Công Danh - 9/7","Tống Thành Đông - 9/7","Nguyễn Hoàng Minh Đức - 9/7","Nguyễn Đức Quang Hải - 9/7","Lê Ngọc Hân - 9/7","Nguyễn Hoàng Bảo Hân - 9/7","Nguyễn Đỗ Chí Hiếu - 9/7","Nguyễn Công Hoàng - 9/7","Đặng Thế Hùng - 9/7","Nguyễn Gia Huy - 9/7","Nguyễn Ngọc Khang - 9/7","Nguyễn Trọng Khang - 9/7","Phạm Hồ Minh Khang - 9/7","Phạm Thái Khang - 9/7","Huỳnh Quốc Anh Khoa - 9/7","Lê Phương Linh - 9/7","Nguyễn Lê Hoàng Long - 9/7","Nguyễn Hà My - 9/7","Nguyễn Hoàng Nam - 9/7","Đỗ Như Ngọc - 9/7","Nguyễn Mai Bích Ngọc - 9/7","Vũ Hồng Ngọc - 9/7","Nguyễn Đức An Nguyên - 9/7","Lê Minh Nhật - 9/7","Nguyễn Hoàng Yến Nhi - 9/7","Nguyễn Phan Quỳnh Như - 9/7","Nguyễn Thị Ngọc Như - 9/7","Nguyễn Trọng Phúc - 9/7","Nguyễn Minh Quân - 9/7","Nguyễn Thu Sương - 9/7","Trần Nguyễn Thùy Tâm - 9/7","Nguyễn Tri Thành - 9/7","Trần Thái Thịnh - 9/7","Nguyễn Hoàng Anh Thư - 9/7","Nguyễn Ngọc Gia Thy - 9/7","Phan Thanh Tuệ - 9/7","Đỗ Đặng Phương Uyên - 9/7","Vũ Lê Gia Vinh - 9/7","Lâm Ý Vy - 9/7","Phan Văn Triệu Vy - 9/7"
+];
+
+// Questions (51) - using content from your uploaded doc. Each has text, choices array, and index of correct choice (0-based).
+const questions = [
+{q:"Câu 1: Ý nghĩa của việc lựa chọn đúng đắn nghề nghiệp đối với cá nhân là:", choices:["Phát huy khả năng làm việc và tăng hiệu suất lao động.","Tạo ra thu nhập cao.","Đảm bảo không bị thất nghiệp.","Chỉ đáp ứng được sở thích cá nhân."], a:0},
+{q:"Câu 2: Nghề nghiệp nào dưới đây thuộc lĩnh vực kỹ thuật, công nghệ?", choices:["Thợ may.","Kỹ sư xây dựng.","Đầu bếp.","Bác sĩ."], a:1},
+{q:"Câu 3: Mục đích chính của ngành nghề trong lĩnh vực kỹ thuật, công nghệ là:", choices:["Nghiên cứu về lịch sử kỹ thuật.","Phát triển ngành nghề thủ công.","Xây dựng các công trình lịch sử.","Phục vụ sản xuất và cuộc sống con người."], a:3},
+{q:"Câu 4: Nghề nghiệp có ý nghĩa như thế nào đối với xã hội?", choices:["Giúp tạo ra công việc cho mọi người.","Chỉ giúp tăng thu nhập cho cá nhân.","Không có ảnh hưởng gì đối với xã hội.","Giúp tránh lãng phí nguồn lực và hạn chế tình trạng thất nghiệp."], a:3},
+{q:"Câu 5: Yêu cầu nào dưới đây là yêu cầu chung về năng lực đối với người lao động trong lĩnh vực kỹ thuật, công nghệ?", choices:["Sức khỏe, thị giác, thính giác yếu.","Trình độ kiến thức, chuyên môn không phù hợp với vị trí việc làm.","Có năng lực phân tích, sáng tạo, làm việc độc lập và làm việc nhóm.","Không có khả năng tự học (ngoại ngữ, tin học,…)."], a:2},
+{q:"Câu 6: Nghề nghiệp là:", choices:["Tập hợp các công việc cụ thể, giống nhau về các nhiệm vụ hoặc mức độ tương đồng cao về nhiệm vụ chính.","Các công việc có thu nhập cao, tạo ra các sản phẩm phục vụ hoạt động giải trí của con người.","Tập hợp các công việc lao động trí óc.","Tập hợp các công việc lao động chân tay."], a:0},
+{q:"Câu 7: Ý nào sau đây không đúng khi nói về tầm quan trọng của nghề nghiệp đối với người lao động?", choices:["Giúp người lao động có thu nhập để nuôi sống bản thân, gia đình.","Giúp người lao động áp dụng chuyên môn, trau dồi kiến thức.","Giúp người lao động nâng cao kĩ năng nghề và kinh nghiệm làm việc.","Giúp người lao động nâng cao chỉ số IQ trong quá trình làm việc."], a:3},
+{q:"Câu 8: Lựa chọn nghề nghiệp đúng đắn có thể giúp em:", choices:["Có thu nhập cao, nâng cao chất lượng cuộc sống.","Có địa vị cao trong xã hội.","Phát huy được khả năng làm việc, đạt được thành công trong tương lai.","Nâng cao giá trị xã hội."], a:2},
+{q:"Câu 9: Người làm trong lĩnh vực kĩ thuật, công nghệ thường xuyên phải tiếp xúc với:", choices:["Các ca phẫu thuật, hồ sơ bệnh án.","Máy móc, thiết bị tạo ra tiếng ồn, khói bụi.","Cây trồng và vật nuôi.","Các phương án tổ chức sự kiện, trang trí nhà ở."], a:1},
+{q:"Câu 10: Hệ thống giáo dục quốc dân gồm giáo dục chính quy và", choices:["giáo dục thường xuyên.","giáo dục đại học.","phổ cập giáo dục.","giáo dục phổ thông."], a:0},
+{q:"Câu 11: Giáo dục phổ thông không bao gồm:", choices:["Giáo dục tiểu học.","Giáo dục trung học cơ sở.","Giáo dục trung học phổ thông.","Giáo dục mầm non."], a:3},
+{q:"Câu 12: Phân luồng trong giáo dục dựa trên cơ sở:", choices:["Phân loại học sinh.","Trình độ dân trí.","Hướng nghiệp.","Điều kiện xã hội."], a:2},
+{q:"Câu 13: Có mấy thời điểm phân luồng học sinh trong giáo dục phổ thông?", choices:["1","2","3","4"], a:1},
+{q:"Câu 14: Sau trung học cơ sở, học sinh có thể tham gia thị trường lao động nếu công việc đó:", choices:["Có thu nhập cao.","Phù hợp lứa tuổi, đúng pháp luật.","Có ích cho xã hội.","Đáp ứng được nhu cầu sống."], a:1},
+{q:"Câu 15: Trình độ không đào tạo ngành, nghề trong lĩnh vực kĩ thuật, công nghệ là:", choices:["Trung cấp.","Trung học cơ sở.","Cao đẳng.","Đại học."], a:1},
+{q:"Câu 16: Thời điểm có sự phân luồng học sinh:", choices:["Học sinh tốt nghiệp trung học cơ sở.","Học sinh tốt nghiệp trình độ sơ cấp.","Học sinh tốt nghiệp trình độ trung cấp.","Học sinh tốt nghiệp trình độ cao đẳng."], a:0},
+{q:"Câu 17: Sau khi kết thúc trung học cơ sở, học sinh có thể theo học trình độ nào dưới đây để trở thành người thợ trong lĩnh vực kỹ thuật, công nghệ?", choices:["Trình độ thạc sĩ.","Trình độ đại học.","Trình độ cao đẳng.","Trình độ trung cấp."], a:3},
+{q:"Câu 18: Bước đầu tiên trong quy trình tìm kiếm thông tin về thị trường lao động là:", choices:["Tiến hành tìm kiếm.","Xác định nguồn thông tin.","Xác định mục tiêu tìm kiếm.","Xác định công cụ tìm kiếm."], a:2},
+{q:"Câu 19: Thị trường lao động luôn thay đổi bởi tác động của mấy yếu tố chính?", choices:["1","2","3","4"], a:3},
+{q:"Câu 20: Công cụ nào dưới đây không phù hợp để tìm kiếm thông tin về thị trường lao động?", choices:["Internet.","Thư viện.","Tạp chí.","Phương tiện giao thông."], a:3},
+{q:"Câu 21: Cơ sở đào tạo nào có vai trò quan trọng trong việc đào tạo lao động phù hợp với thị trường lao động?", choices:["Trường đại học, cao đẳng, trung cấp.","Trường tiểu học.","Trường trung học cơ sở.","Trường trung học phổ thông."], a:0},
+{q:"Câu 22: Đâu không phải các yếu tố ảnh hưởng đến thị trường lao động?", choices:["Sự chuyển dịch cơ cấu kinh tế.","Nhu cầu lao động và nguồn cung lao động.","Trách nhiệm và nghĩa vụ của người sử dụng lao động.","Sự phát triển của khoa học và công nghệ."], a:2},
+{q:"Câu 23: Gia tăng vốn đầu tư sản xuất của người sử dụng lao động làm thay đổi:", choices:["Quy mô và công nghệ sản xuất.","Chất lượng sản phẩm.","Giảm số lượng lao động.","Số lượng sản phẩm tăng."], a:0},
+{q:"Câu 24: Nguồn thông tin về thị trường lao động trong lĩnh vực kĩ thuật, công nghệ được trích dẫn tại đâu?", choices:["Tạp chí Cộng sản.","Website Bộ Lao động – Thương binh và Xã hội.","Bản tin kinh tế Việt Nam.","Cổng thông tin điện tử quốc gia."], a:1},
+{q:"Câu 25: Theo báo cáo của Bộ Lao động - Thương binh và Xã hội, lĩnh vực nào có nhu cầu tuyển dụng cao nhất trong ngành công nghệ tại Việt Nam?", choices:["Lập trình viên.","Thiết kế đồ họa.","Quản lý dự án.","Hỗ trợ kĩ thuật."], a:0},
+{q:"Câu 26: Thách thức lớn nhất mà thị trường lao động kĩ thuật, công nghệ tại Việt Nam đang phải đối mặt là gì?", choices:["Thiếu hụt nhân lực chất lượng cao.","Thiếu vốn đầu tư.","Hệ thống pháp luật chưa hoàn thiện.","Thiếu thị trường tiêu thụ."], a:0},
+{q:"Câu 27: “Cơ hội việc làm, môi trường làm việc tốt, lương cao,…” thuộc phần nào của cây nghề nghiệp.", choices:["Phần lá.","Phần thân.","Phần quả.","Phần rễ."], a:2},
+{q:"Câu 28: Quy trình lựa chọn nghề nghiệp gồm mấy bước?", choices:["1 bước.","2 bước.","3 bước.","4 bước."], a:3},
+{q:"Câu 29: Lí thuyết mật mã Holland nêu bật mấy kiểu người?", choices:["3 kiểu người.","4 kiểu người.","5 kiểu người.","6 kiểu người."], a:3},
+{q:"Câu 30: Yếu tố chủ quan ảnh hưởng tới quyết định lựa chọn nghề nghiệp trong lĩnh vực kĩ thuật, công nghệ là:", choices:["Sở thích.","Sức khỏe.","Gia đình.","Xã hội."], a:0},
+{q:"Câu 31: Yếu tố khách quan ảnh hưởng tới quyết định lựa chọn nghề nghiệp trong lĩnh vực kĩ thuật, công nghệ là:", choices:["Năng lực.","Sức khỏe.","Nhà trường.","Cá tính."], a:2},
+{q:"Câu 32: Cây nghề nghiệp mô tả gì?", choices:["mối liên hệ giữa mức lương cá nhân với nghề nghiệp của mỗi người.","mối liên hệ giữa đặc điểm cá nhân với nghề nghiệp của mỗi người.","mối liên hệ giữa quan hệ cá nhân với nghề nghiệp của mỗi người.","mối liên hệ giữa hình dáng cá nhân với nghề nghiệp của mỗi người."], a:1},
+{q:"Câu 33: Cây nghề nghiệp có mấy phần?", choices:["1","2","3","4"], a:1},
+{q:"Câu 34: Người có tính cách “xã hội” theo mật mã Holland thích làm việc gì?", choices:["Thực hiện các hoạt động nghệ thuật.","Thích làm việc cung cấp hoặc làm sáng tỏ thông tin.","Nghiên cứu và phân tích.","Lãnh đạo và quản lí."], a:1},
+{q:"Câu 35: Đặc điểm nào dưới đây mô tả kiểu người “kĩ thuật”?", choices:["Thích làm việc có mục tiêu, có kế hoạch, thích các hoạt động ngoài trời.","Thích sự cải tiến, đổi mới, thích các hoạt động sáng tạo.","Thích thực hiện công việc theo hướng dẫn rõ ràng, hoạt động có tổ chức.","Tự tin, thích hùng biện và những hoạt động mang tính thuyết phục người khác."], a:2},
+{q:"Câu 36: Đặc điểm nào dưới đây mô tả kiểu người “nghệ thuật”?", choices:["Thích sự chính xác, các hoạt động nghiên cứu.","Thích thực hiện công việc theo hướng dẫn rõ ràng, hoạt động có tổ chức.","Tự tin, thích hùng biện và những hoạt động mang tính thuyết phục người khác.","Thích sự cải tiến, đổi mới, thích các hoạt động sáng tạo."], a:3},
+{q:"Câu 37: Chọn phát biểu nào dưới đây không phải là yếu tố khách quan ảnh hưởng tới quyết định lựa chọn nghề nghiệp trong lĩnh vực kĩ thuật, công nghệ.", choices:["Truyền thống nghề nghiệp và điều kiện kinh tế của gia đình.","Xu hướng, lời khuyên lựa chọn nghề nghiệp của bạn bè.","Thích làm việc với máy móc, thiết bị, công cụ.","Nhu cầu tuyển dụng của thị trường lao động."], a:2},
+{q:"Câu 38: Yếu tố nào dưới đây là một trong những yếu tố có ảnh hưởng trực tiếp, quyết định đến sự thành công trong nghề nghiệp tương lai của mỗi người?", choices:["Công việc ổn định.","Được nhiều người tôn trọng.","Lương cao.","Giá trị nghề nghiệp."], a:3},
+{q:"Câu 39: Các nghề nghiệp như “Kế toán, kiểm lâm, nhà ngoại giao,…” thuộc kiểu người nào theo mật mã Holland?", choices:["Nghiệp vụ.","Nghiên cứu.","Nghệ thuật.","Xã hội."], a:0},
+{q:"Câu 40: Lựa chọn nghề nghiệp dựa trên những yếu tố ở phần rễ của cây nghề nghiệp có ý nghĩa gì đối với người lao động?", choices:["Là cơ sở giúp họ có được thành công và sự hài lòng trong nghề nghiệp.","Tạo ra cơ hội thăng tiến nhanh chóng trong sự nghiệp.","Đảm bảo họ sẽ có một môi trường làm việc tốt.","Giúp họ thu được mức lương cao hơn trong công việc."], a:0},
+{q:"Câu 41: Phần nào của cây nghề nghiệp minh họa nền tảng lựa chọn nghề nghiệp?", choices:["Phần rễ","Phần quả.","Phần lá.","Phần thân."], a:0},
+{q:"Câu 42: Theo mật mã Holland, người thích làm việc cung cấp hoặc làm sáng tỏ thông tin, thích giúp đỡ, huấn luyện, chữa trị hoặc chăm sóc sức khỏe cho người khác, có khả năng về ngôn ngữ thuộc nhóm tính cách và kiểu người nào?", choices:["Nhóm tính cách “Nguyên tắc”, kiểu người “Nghiệp vụ”.","Nhóm tính cách “Nghiên cứu”, kiểu người “Điều tra”.","Nhóm tính cách “Điều tra”, kiểu người “Nghiên cứu”.","Nhóm tính cách “Xã hội”, kiểu người “Xã hội”."], a:3},
+{q:"Câu 43: Mỗi người nên lựa chọn nghề nghiệp dựa trên cơ sở nào?", choices:["Ý kiến, nguyện vọng của các thành viên trong gia đình","Sở thích, khả năng, cá tính của bản thân.","Xu hướng lựa chọn nghề nghiệp của bạn bè.","Môi trường làm việc tốt."], a:1},
+{q:"Câu 44: Kiểu người nào phù hợp với nghề kỹ thuật viên nông nghiệp?", choices:["Nghiệp vụ","Kỹ thuật","Nghiên cứu","Quản lý"], a:1},
+{q:"Câu 45: Những yếu tố nào có ảnh hưởng trực tiếp, quyết định sự thành công trong nghề nghiệp tương lai của mỗi người?", choices:["Được nhiều người tôn trọng.","Công việc ổn định, lương cao.","Sở thích, khả năng, cá tính của mỗi người.","Nhiều cơ hội thăng tiến trong công việc."], a:2},
+{q:"Câu 46: Giáo dục kỹ thuật – công nghệ góp phần chủ yếu vào việc nào sau đây?", choices:["Phát triển năng khiếu nghệ thuật","Rèn luyện thể chất","Phát triển năng lực công nghệ, kỹ thuật","Giúp học sinh học tốt ngoại ngữ"], a:2},
+{q:"Câu 47: Giáo dục kỹ thuật – công nghệ có vai trò như thế nào đối với xã hội?", choices:["Tạo ra môi trường học tập thoải mái","Giúp học sinh hiểu thêm về lịch sử","Cung cấp nguồn nhân lực kỹ thuật cho đất nước","Hạn chế sử dụng thiết bị công nghệ"], a:2},
+{q:"Câu 48: Giáo dục kỹ thuật – công nghệ ở bậc THCS chủ yếu nhằm giúp học sinh:", choices:["Làm quen với nghiên cứu khoa học xã hội","Phát triển năng khiếu nghệ thuật","Rèn kỹ năng thực hành, tư duy kỹ thuật và định hướng nghề nghiệp tương lai","Học thuộc các công thức vật lý, toán học"], a:2},
+{q:"Câu 49: Giáo dục kỹ thuật – công nghệ giúp học sinh phát triển năng lực nào dưới đây?", choices:["Ghi nhớ máy móc, thiết bị","Sáng tác nghệ thuật","Ứng dụng kiến thức để giải quyết vấn đề thực tiễn","Học thuộc quy trình kỹ thuật"], a:2},
+{q:"Câu 50: Vì sao giáo dục kỹ thuật – công nghệ có vai trò quan trọng trong hệ thống giáo dục quốc dân?", choices:["Giúp học sinh thư giãn sau giờ học","Góp phần hình thành năng lực lao động, sáng tạo và định hướng nghề nghiệp","Giúp học sinh học tốt các môn xã hội","Làm giảm tải chương trình học"], a:1},
+{q:"Câu 51: Giáo dục kỹ thuật – công nghệ góp phần thực hiện mục tiêu nào của đất nước trong thời kỳ công nghiệp hoá – hiện đại hoá?", choices:["Bảo tồn văn hóa dân gian","Đào tạo nguồn nhân lực kỹ thuật, có năng lực sáng tạo","Giảm thời gian học tập của học sinh","Tăng cường hoạt động du lịch"], a:1}
+];
+
+// Utility: create slug for query param
+function slug(name){
+  // Preserve the space before the class number for better slug: "Ten_HS_-_9/13"
+  return encodeURIComponent(name.replace(/\s+-\s+/g,'_-_').replace(/\s+/g,'_'));
+}
+
+// Populate name list
+const nameListDiv = document.getElementById('nameList');
+students.forEach(s=>{
+  const a = document.createElement('a');
+  a.href = '#';
+  a.textContent = s;
+  a.onclick = (e)=>{ e.preventDefault(); openQuiz(s); };
+  nameListDiv.appendChild(a);
+});
+
+// Render quiz
+const quizArea = document.getElementById('quizArea');
+const studentTitle = document.getElementById('studentTitle');
+const container = document.getElementById('questionsContainer');
+const showScoreBtn = document.getElementById('showScoreBtn');
+const scoreArea = document.getElementById('scoreArea');
+
+function openQuiz(name){
+  // update URL with tail param
+  const tail = '?student=' + slug(name);
+  history.replaceState(null,'',tail);
+  studentTitle.textContent = 'Quiz cho: ' + name;
+  nameListDiv.classList.add('hidden');
+  quizArea.classList.remove('hidden');
+  container.innerHTML = '';
+  scoreArea.classList.add('hidden');
+  scoreArea.innerHTML = '';
+  // render all questions
+  questions.forEach((qObj, idx)=>{
+    const qDiv = document.createElement('div');
+    qDiv.className = 'question';
+    const qTitle = document.createElement('div');
+    qTitle.innerHTML = '<strong>'+(idx+1)+'.</strong> '+escapeHtml(qObj.q);
+    qDiv.appendChild(qTitle);
+    const choicesDiv = document.createElement('div');
+    choicesDiv.className = 'choices';
+    qObj.choices.forEach((ch, cidx)=>{
+      const id = 'q'+idx+'_c'+cidx;
+      const lab = document.createElement('label');
+      lab.htmlFor = id;
+      lab.innerHTML = '<input type="radio" name="q'+idx+'" id="'+id+'" value="'+cidx+'"> '+escapeHtml(ch);
+      lab.onclick = (e)=>{
+        // process answer click
+        // disable all radios for this question
+        const radios = qDiv.querySelectorAll('input[type=radio]');
+        radios.forEach(r=>r.disabled=true);
+        const selected = parseInt(e.target.closest('label').querySelector('input').value);
+        const feedback = document.createElement('div');
+        feedback.className = 'feedback';
+        if(selected === qObj.a){
+          feedback.textContent = '✅ Đúng!';
+        } else {
+          feedback.textContent = '❌ Sai!';
+        }
+        // Bold the correct choice text
+        const labels = qDiv.querySelectorAll('label');
+        labels.forEach((L, ii)=>{
+          if(ii === qObj.a){
+            L.classList.add('correct');
+            // make the correct answer bold
+            L.style.fontWeight = '700';
+          }
+        });
+        // append feedback if not existing
+        if(!qDiv.querySelector('.feedback')){
+          qDiv.appendChild(feedback);
+        }
+      };
+      choicesDiv.appendChild(lab);
+    });
+    qDiv.appendChild(choicesDiv);
+    container.appendChild(qDiv);
+  });
+  // scroll to top of quiz
+  window.scrollTo(0,0);
+}
+
+// Back to list
+function backToList(){
+  history.replaceState(null,'','/');
+  quizArea.classList.add('hidden');
+  nameListDiv.classList.remove('hidden');
+}
+
+// Show score
+showScoreBtn.onclick = ()=>{
+  let correct=0;
+  questions.forEach((qObj, idx)=>{
+    const radios = document.getElementsByName('q'+idx);
+    let answered = -1;
+    for(const r of radios){ if(r.checked) { answered = parseInt(r.value); break; } }
+    if(answered === qObj.a) correct++;
+  });
+  scoreArea.classList.remove('hidden');
+  scoreArea.innerHTML = '<h3>Điểm: '+correct+' / '+questions.length+'</h3>';
+  scoreArea.innerHTML += '<p class="small">Lưu ý: mỗi câu chỉ tính khi HS đã chọn đáp án. Đáp án đúng được in đậm sau khi chọn.</p>';
+  window.scrollTo(0,document.body.scrollHeight);
+};
+
+// Escape HTML to prevent injection
+function escapeHtml(text){
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// If URL has student param, open quiz automatically
+(function(){
+  const params = new URLSearchParams(location.search);
+  if(params.has('student')){
+    const raw = params.get('student');
+    // We need to carefully decode and reformat the name back to match the array
+    let name = decodeURIComponent(raw);
+    // Reverse the slug conversion to match the array format "Ten HS - 9/13"
+    name = name.replace(/_-_/g, ' - ').replace(/_/g, ' ');
+
+    // Check if the potentially reformatted name exists in the list before opening
+    if (students.includes(name)) {
+        openQuiz(name);
+    } else {
+        // Fallback to try opening with the raw name if it's not found after reformatting
+        openQuiz(name);
+    }
+  }
+})();
+</script>
+</body>
+</html>
